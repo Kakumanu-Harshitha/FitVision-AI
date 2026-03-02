@@ -4,6 +4,20 @@ This document contains the detailed system design and technical architecture for
 
 ---
 
+## Conceptual Architecture (Simplified)
+
+```mermaid
+graph TD;
+  USER[Webcam Browser] -->|Local inference| AI[MediaPipe Client];
+  AI -->|Reps Angles| FE[React SPA];
+  FE -->|REST Auth History| API[FastAPI];
+  FE -->|WS Chat Leaderboard| WS[WS Manager];
+  API -->|Async ORM| DB[(PostgreSQL)];
+  WS -->|PubSub| DB;
+```
+
+---
+
 ## High‑Level Architecture
 
 ```mermaid
@@ -99,6 +113,43 @@ Formatting
 
 ---
 
+## Real‑Time Social and Gamification (WebSockets)
+
+```mermaid
+sequenceDiagram
+  participant FE as Frontend
+  participant WS as WS Manager
+  participant DB as PostgreSQL
+
+  FE->>WS: chat_message {to, text}
+  WS->>DB: insert ChatMessage
+  WS-->>FE: chat_received {from, text}
+
+  FE->>WS: duel_request {target, exercise}
+  WS-->>FE: duel_invite {from, exercise}
+  FE->>WS: duel_accept {opponent, exercise}
+  WS-->>FE: duel_start {opponent, exercise}
+  FE->>WS: duel_progress {reps}
+  WS-->>FE: opponent_progress {reps}
+  FE->>WS: duel_end {reps}
+  WS-->>FE: duel_finished {from, reps}
+```
+
+---
+
+## Auth and Security Flow
+
+```mermaid
+flowchart LR;
+  A[Signup/Login] --> B[JWT Issue];
+  B --> C[Protected Endpoints];
+  C --> D[DB Access via ORM];
+  A --> E[TOTP Setup Optional];
+  E --> F[TOTP Verify];
+```
+
+---
+
 ## Full System Data Flow
 
 ```mermaid
@@ -151,4 +202,3 @@ graph TD;
 - Reinforcement learning for adaptive program progression  
 - Mobile deployment with on‑device lightweight models  
 - Federated learning to personalize without centralizing data
-

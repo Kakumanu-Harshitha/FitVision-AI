@@ -31,6 +31,11 @@ AI‑powered fitness tracking that delivers real‑time workout analysis, postur
 - Gamification (XP, levels, badges, leaderboard)
 - Real‑time chat via WebSockets
 - Voice feedback hooks
+- Water tracking and hydration targets
+- Diet plan generation and nutrition guidance
+- Live workout sessions with pose overlay
+- Social duels (invite, accept, progress) via WebSockets
+- Secure auth with JWT and optional TOTP MFA
 
 ---
 

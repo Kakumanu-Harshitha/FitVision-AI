@@ -29,29 +29,26 @@ const Stats = () => {
       }
     } catch (error) {
       console.error('Fetch stats failed:', error);
-      setStatsData(getMockStats());
+      setStatsData(getEmptyStats());
     } finally {
       setLoading(false);
     }
   };
 
-  const getMockStats = () => ({
-    totalWorkouts: 42,
-    totalMinutes: 1260,
-    avgScore: 87,
-    caloriesBurned: 8400,
-    fatigueData: [85, 88, 82, 90, 87, 84, 89],
-    recoveryRate: 85,
-    jointStress: 30,
-    jointStressLevel: 'Low',
-    weeklyWorkouts: [3, 5, 4, 6, 5, 4, 7],
-    personalBests: [
-      { exercise: 'Squats', reps: 50, date: '2026-01-28' },
-      { exercise: 'Push-ups', reps: 35, date: '2026-01-25' }
-    ]
+  const getEmptyStats = () => ({
+    totalWorkouts: 0,
+    totalMinutes: 0,
+    avgScore: 0,
+    caloriesBurned: 0,
+    fatigueData: [0, 0, 0, 0, 0, 0, 0],
+    recoveryRate: null,
+    jointStress: null,
+    jointStressLevel: null,
+    weeklyWorkouts: [0, 0, 0, 0, 0, 0, 0],
+    personalBests: []
   });
 
-  const data = statsData || getMockStats();
+  const data = statsData || getEmptyStats();
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-black text-gray-900 dark:text-white p-6 pb-24 max-w-2xl mx-auto overflow-y-auto transition-colors duration-300">
@@ -64,8 +61,8 @@ const Stats = () => {
               key={range}
               onClick={() => setTimeRange(range)}
               className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${timeRange === range
-                  ? 'bg-primary text-black scale-105'
-                  : 'bg-gray-200 dark:bg-zinc-900/50 text-gray-500 dark:text-zinc-500 hover:bg-gray-300 dark:hover:bg-zinc-900'
+                ? 'bg-primary text-black scale-105'
+                : 'bg-gray-200 dark:bg-zinc-900/50 text-gray-500 dark:text-zinc-500 hover:bg-gray-300 dark:hover:bg-zinc-900'
                 }`}
             >
               {range.charAt(0).toUpperCase() + range.slice(1)}
@@ -152,8 +149,8 @@ const Stats = () => {
               <div className="flex justify-between text-xs font-bold mb-2">
                 <span className="text-gray-500 dark:text-zinc-500 uppercase">Joint Stress</span>
                 <span className={`${data.jointStressLevel === 'High' ? 'text-red-500' :
-                    data.jointStressLevel === 'Moderate' ? 'text-orange-500' :
-                      data.jointStressLevel === 'Low' ? 'text-green-500' : 'text-gray-500'
+                  data.jointStressLevel === 'Moderate' ? 'text-orange-500' :
+                    data.jointStressLevel === 'Low' ? 'text-green-500' : 'text-gray-500'
                   }`}>
                   {data.jointStressLevel || 'No data'}
                 </span>
@@ -161,8 +158,8 @@ const Stats = () => {
               <div className="h-2 bg-gray-200 dark:bg-zinc-900 rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-1000 ${data.jointStressLevel === 'High' ? 'bg-red-500' :
-                      data.jointStressLevel === 'Moderate' ? 'bg-orange-500' :
-                        data.jointStressLevel === 'Low' ? 'bg-green-500' : 'bg-gray-300'
+                    data.jointStressLevel === 'Moderate' ? 'bg-orange-500' :
+                      data.jointStressLevel === 'Low' ? 'bg-green-500' : 'bg-gray-300'
                     }`}
                   style={{ width: `${data.jointStress || 0}%` }}
                 />

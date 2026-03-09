@@ -58,4 +58,12 @@ class RateLimitMiddleware:
             logger.error(f"Rate limit error: {e}")
             pass
 
-        return await self.app(scope, receive, send)
+        try:
+            return await self.app(scope, receive, send)
+        except Exception as e:
+            logger.error(f"Unhandled exception in app: {e}", exc_info=True)
+            response = JSONResponse(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                content={"detail": "Internal server error. Please check server logs."}
+            )
+            return await response(scope, receive, send)

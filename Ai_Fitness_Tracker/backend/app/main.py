@@ -10,6 +10,9 @@ from .core.config import settings
 from .core.redis import redis_service
 from .core.middleware import RateLimitMiddleware
 from .db.database import sync_engine, Base
+# IMPORTANT: import all models here so they are registered to Base
+# before create_all() runs, otherwise tables won't be created.
+from .db import models  # noqa: F401
 from .api.v1.auth import router as auth_router
 from .api.v1.workouts import router as workout_router
 from .api.v1.users import router as profile_router
@@ -29,6 +32,20 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title=settings.PROJECT_NAME)
+
+# CORS MUST be added first so it wraps all middleware/handlers
+# and injects Access-Control-Allow-Origin even on error responses.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://0.0.0.0:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Mount static files
 # Get absolute path to static directory
@@ -111,19 +128,6 @@ app.include_router(ai_router, prefix=settings.API_V1_STR)
 
 # Add RateLimitMiddleware
 app.add_middleware(RateLimitMiddleware, redis_service=redis_service, limit=100, window=60)
-
-# CORS configuration (Added LAST so it wraps everything else and runs FIRST for requests)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://0.0.0.0:3000",
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 @app.get("/")
 def root():

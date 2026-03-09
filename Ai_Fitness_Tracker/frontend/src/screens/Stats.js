@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  TrendingUp, 
-  Award, 
-  Target, 
-  Flame, 
+import {
+  TrendingUp,
+  Award,
+  Target,
+  Flame,
   Zap,
   Activity
 } from 'lucide-react';
@@ -63,11 +63,10 @@ const Stats = () => {
             <button
               key={range}
               onClick={() => setTimeRange(range)}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
-                timeRange === range 
-                  ? 'bg-primary text-black scale-105' 
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${timeRange === range
+                  ? 'bg-primary text-black scale-105'
                   : 'bg-gray-200 dark:bg-zinc-900/50 text-gray-500 dark:text-zinc-500 hover:bg-gray-300 dark:hover:bg-zinc-900'
-              }`}
+                }`}
             >
               {range.charAt(0).toUpperCase() + range.slice(1)}
             </button>
@@ -101,7 +100,7 @@ const Stats = () => {
           <div className="flex items-end justify-between h-32 gap-2">
             {data.weeklyWorkouts.map((count, index) => (
               <div key={index} className="flex-1 flex flex-col items-center gap-2">
-                <div 
+                <div
                   className="w-full bg-primary rounded-t-lg transition-all duration-1000"
                   style={{ height: `${(count / 7) * 100}%`, minHeight: '4px' }}
                 />
@@ -140,32 +139,32 @@ const Stats = () => {
             <div>
               <div className="flex justify-between text-xs font-bold mb-2">
                 <span className="text-gray-500 dark:text-zinc-500 uppercase">Recovery Rate</span>
-                <span className="text-primary">{data.recoveryRate}%</span>
+                <span className="text-primary">{data.recoveryRate !== null ? `${data.recoveryRate}%` : '--%'}</span>
               </div>
               <div className="h-2 bg-gray-200 dark:bg-zinc-900 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-primary rounded-full transition-all duration-1000" 
-                  style={{ width: `${data.recoveryRate}%` }} 
+                <div
+                  className="h-full bg-primary rounded-full transition-all duration-1000"
+                  style={{ width: `${data.recoveryRate || 0}%` }}
                 />
               </div>
             </div>
             <div>
               <div className="flex justify-between text-xs font-bold mb-2">
                 <span className="text-gray-500 dark:text-zinc-500 uppercase">Joint Stress</span>
-                <span className={`${
-                  data.jointStressLevel === 'High' ? 'text-red-500' : 
-                  data.jointStressLevel === 'Moderate' ? 'text-orange-500' : 'text-green-500'
-                }`}>
-                  {data.jointStressLevel}
+                <span className={`${data.jointStressLevel === 'High' ? 'text-red-500' :
+                    data.jointStressLevel === 'Moderate' ? 'text-orange-500' :
+                      data.jointStressLevel === 'Low' ? 'text-green-500' : 'text-gray-500'
+                  }`}>
+                  {data.jointStressLevel || 'No data'}
                 </span>
               </div>
               <div className="h-2 bg-gray-200 dark:bg-zinc-900 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full rounded-full transition-all duration-1000 ${
-                    data.jointStressLevel === 'High' ? 'bg-red-500' : 
-                    data.jointStressLevel === 'Moderate' ? 'bg-orange-500' : 'bg-green-500'
-                  }`} 
-                  style={{ width: `${data.jointStress}%` }} 
+                <div
+                  className={`h-full rounded-full transition-all duration-1000 ${data.jointStressLevel === 'High' ? 'bg-red-500' :
+                      data.jointStressLevel === 'Moderate' ? 'bg-orange-500' :
+                        data.jointStressLevel === 'Low' ? 'bg-green-500' : 'bg-gray-300'
+                    }`}
+                  style={{ width: `${data.jointStress || 0}%` }}
                 />
               </div>
             </div>

@@ -19,6 +19,7 @@ sqlalchemy==2.0.28
 passlib[bcrypt]==1.7.4
 bcrypt==3.2.2
 python-jose[cryptography]==3.3.0
+cryptography==46.0.5
 python-multipart==0.0.9
 pydantic-settings==2.2.1
 alembic==1.13.1

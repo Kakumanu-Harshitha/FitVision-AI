@@ -92,10 +92,15 @@ class AuthService:
         return response
 
     async def authenticate_user(self, username: str, password: str) -> TokenResponse:
-        user = await self.user_repo.get_by_username(username)
-        if not user:
-            # Try to find by email if username lookup failed
+        # Detect whether the credential is an email or a username to avoid
+        # PostgreSQL type errors when querying the wrong column.
+        if "@" in username:
             user = await self.user_repo.get_by_email(username)
+        else:
+            user = await self.user_repo.get_by_username(username)
+            if not user:
+                # Fallback: try email anyway (edge case)
+                user = await self.user_repo.get_by_email(username)
 
         if not user:
             print(f"Auth failed: User '{username}' not found")

@@ -138,45 +138,39 @@ async def get_user_stats(
     recovery_rate = int(max(10.0, min(100.0, recovery_base * form_factor - fatigue_penalty + hydration_bonus)))
 
     # 5. Personal Bests (Normalized exercise names)
-    # We'll use a subquery to normalize names and get max reps
-    # In a real app, we might want a mapping table, but for now we'll lowercase and strip trailing 's'
     all_workouts_query = select(WorkoutLog).where(WorkoutLog.user_id == current_user.id)
     all_workouts_res = await db.execute(all_workouts_query)
     all_workouts = all_workouts_res.scalars().all()
 
     pb_dict = {}
     for w in all_workouts:
-        # Normalize: lowercase, strip 's' if it's at the end (simplistic)
         norm_name = w.exercise.lower().strip()
-        if norm_name.endswith('s') and norm_name not in ['pushups', 'squats']: # Keep these as they are common
-             pass # just for logic flow
-        
-        # Better normalization: handle known plural/singular
         if norm_name == 'squats': norm_name = 'squat'
         if norm_name == 'pushups': norm_name = 'pushup'
         if norm_name == 'lunges': norm_name = 'lunge'
-        
-        # Capitalize for display
         display_name = norm_name.capitalize()
-        
-        if display_name not in pb_dict or w.reps > pb_dict[display_name]['reps']:
+        if display_name not in pb_dict or (w.reps or 0) > pb_dict[display_name]['reps']:
             pb_dict[display_name] = {
                 "exercise": display_name,
-                "reps": w.reps,
+                "reps": w.reps or 0,
                 "date": w.created_at.strftime("%Y-%m-%d")
             }
-    
+
     personal_bests = sorted(list(pb_dict.values()), key=lambda x: x['reps'], reverse=True)
+
+    # If the user has never worked out, return null for performance health metrics
+    # so the frontend can show "No data yet" instead of misleading defaults.
+    has_workout_history = (stats_row.total_workouts or 0) > 0
 
     return {
         "totalWorkouts": stats_row.total_workouts or 0,
-        "totalMinutes": int((stats_row.total_minutes or 0) / 60), # Convert seconds to minutes
+        "totalMinutes": int((stats_row.total_minutes or 0) / 60),
         "avgScore": int(stats_row.avg_score or 0),
         "caloriesBurned": int(stats_row.calories_burned or 0),
         "fatigueData": fatigue_data,
-        "recoveryRate": recovery_rate,
-        "jointStress": stress_value,
-        "jointStressLevel": stress_level,
+        "recoveryRate": recovery_rate if has_workout_history else None,
+        "jointStress": stress_value if has_workout_history else None,
+        "jointStressLevel": stress_level if has_workout_history else None,
         "weeklyWorkouts": weekly_workouts,
         "personalBests": personal_bests
     }

@@ -16,6 +16,7 @@ htmlcov/
 *.db
 *.sqlite3
 
+
 # Node.js
 node_modules/
 npm-debug.log*

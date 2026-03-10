@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import Optional
+from typing import Optional, Any
 import os
 
 class Settings(BaseSettings):
@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     
     # Database Settings
-    DATABASE_URL: str
+    DATABASE_URL: Optional[str] = None
     USE_POSTGRES: bool = True
     DATABASE_HOSTNAME: Optional[str] = None
     DATABASE_PORT: Optional[int] = None
@@ -47,10 +47,18 @@ class Settings(BaseSettings):
     APPLE_REDIRECT_URI: Optional[str] = None
 
     def get_database_url(self, is_async: bool = False) -> str:
-        if not self.DATABASE_URL:
-             raise ValueError("DATABASE_URL must be set in the environment.")
-             
         url = self.DATABASE_URL
+        if not url:
+            if not (self.DATABASE_NAME and self.DATABASE_USERNAME and self.DATABASE_PASSWORD and self.DATABASE_HOSTNAME):
+                raise ValueError(
+                    "PostgreSQL credentials are missing. Set DATABASE_HOSTNAME, "
+                    "DATABASE_NAME, DATABASE_USERNAME, and DATABASE_PASSWORD or DATABASE_URL."
+                )
+            driver = "postgresql+asyncpg" if is_async else "postgresql"
+            port_str = f":{self.DATABASE_PORT}" if self.DATABASE_PORT else ""
+            url = f"{driver}://{self.DATABASE_USERNAME}:{self.DATABASE_PASSWORD}@{self.DATABASE_HOSTNAME}{port_str}/{self.DATABASE_NAME}"
+            return url
+             
         if is_async:
             if url.startswith("postgresql://"):
                 return url.replace("postgresql://", "postgresql+asyncpg://")

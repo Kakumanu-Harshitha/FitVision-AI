@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-    X, Play, Pause, RotateCcw, ChevronRight, 
-    Activity, Clock, Zap, Volume2, VolumeX, 
+import {
+    X, Play, Pause, RotateCcw, ChevronRight,
+    Activity, Clock, Zap, Volume2, VolumeX,
     Mic, Send, Loader2, Trophy, Frown
 } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
@@ -43,6 +43,7 @@ const LiveWorkout = () => {
     const [lastScoreData, setLastScoreData] = useState(null);
     const [lastRepData, setLastRepData] = useState(null);
     const lastLLMInstantTime = useRef(0);
+    const isMountedRef = useRef(true);
     const [heardText, setHeardText] = useState('');
     const recognitionRef = useRef(null);
     const coachWsRef = useRef(null);
@@ -70,6 +71,7 @@ const LiveWorkout = () => {
         }
 
         return () => {
+            isMountedRef.current = false;
             if (timerRef.current) {
                 clearInterval(timerRef.current);
             }
@@ -119,7 +121,7 @@ const LiveWorkout = () => {
                     setAdvice(msg.reply);
                     speakAdvice(msg.reply, true);
                 }
-            } catch (e) {}
+            } catch (e) { }
         };
         ws.onerror = () => {
             setCoachError('Coach connection error. Using fallback.');
@@ -128,7 +130,7 @@ const LiveWorkout = () => {
             setCoachError('Coach disconnected. Will retry when you speak.');
         };
         return () => {
-            try { ws.close(); } catch (e) {}
+            try { ws.close(); } catch (e) { }
         };
     }, [token]);
 
@@ -209,7 +211,7 @@ const LiveWorkout = () => {
         const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!Rec) return;
         if (recognitionRef.current) {
-            try { recognitionRef.current.stop(); } catch (e) {}
+            try { recognitionRef.current.stop(); } catch (e) { }
             recognitionRef.current = null;
         }
         const rec = new Rec();
@@ -266,14 +268,14 @@ const LiveWorkout = () => {
         };
         rec.onend = () => {
             if (phase === 'workout' && isAudioEnabled) {
-                try { rec.start(); } catch (e) {}
+                try { rec.start(); } catch (e) { }
             }
         };
         rec.onerror = (e) => {
             setSttError(String(e?.error || 'not-allowed'));
         };
         recognitionRef.current = rec;
-        try { rec.start(); } catch (e) {}
+        try { rec.start(); } catch (e) { }
     };
 
     useEffect(() => {
@@ -281,13 +283,13 @@ const LiveWorkout = () => {
             tryStartRecognition();
         } else {
             if (recognitionRef.current) {
-                try { recognitionRef.current.stop(); } catch (e) {}
+                try { recognitionRef.current.stop(); } catch (e) { }
                 recognitionRef.current = null;
             }
         }
         return () => {
             if (recognitionRef.current) {
-                try { recognitionRef.current.stop(); } catch (e) {}
+                try { recognitionRef.current.stop(); } catch (e) { }
                 recognitionRef.current = null;
             }
         };
@@ -295,8 +297,9 @@ const LiveWorkout = () => {
 
     // Speech handler
     const speakAdvice = (text, force = false) => {
+        if (!isMountedRef.current) return;
         const isVoiceEnabled = settings?.voiceCoachEnabled !== false;
-        
+
         if (isMuted || !isVoiceEnabled || !text || phase === 'rest' || (!isAudioEnabled && !force)) {
             return;
         }
@@ -325,7 +328,7 @@ const LiveWorkout = () => {
                     const rec = recognitionRef.current;
                     let restart = false;
                     if (rec) {
-                        try { rec.stop(); } catch (e) {}
+                        try { rec.stop(); } catch (e) { }
                         restart = true;
                     }
                     utterance.onend = () => {
@@ -400,7 +403,7 @@ const LiveWorkout = () => {
         // Get the latest stats before completing
         const finalStats = completeWorkout();
         console.log('[LiveWorkout] Final stats for summary:', finalStats);
-        
+
         // If in duel mode, notify opponent that we finished with final reps
         try {
             if (duelMode && opponent?.username) {
@@ -409,7 +412,7 @@ const LiveWorkout = () => {
         } catch (e) {
             console.warn('[LiveWorkout] Failed to send duel end:', e);
         }
-        
+
         try {
             if (!token) {
                 console.warn('[LiveWorkout] No token found, skipping save');
@@ -429,7 +432,7 @@ const LiveWorkout = () => {
                         avg_angle: 0.0
                     })
                 });
-                
+
                 if (response.ok) {
                     console.log('[LiveWorkout] Workout saved to backend');
                 } else {
@@ -448,8 +451,8 @@ const LiveWorkout = () => {
 
         if (token) {
             try {
-                const profileRes = await fetch(`${API_URL}/profile`, { 
-                    headers: { 'Authorization': `Bearer ${token}` } 
+                const profileRes = await fetch(`${API_URL}/profile`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (profileRes.ok) {
                     const profileData = await profileRes.json();
@@ -461,8 +464,8 @@ const LiveWorkout = () => {
             }
         }
 
-        navigate('/workout-summary', { 
-            state: { 
+        navigate('/workout-summary', {
+            state: {
                 workoutData: {
                     exercise: currentExercise || 'Squat',
                     reps: finalStats.reps,
@@ -487,8 +490,8 @@ const LiveWorkout = () => {
         if (!isAudioEnabled) {
             setIsAudioEnabled(true);
             const u = new SpeechSynthesisUtterance('Voice coach enabled');
-            try { window.speechSynthesis.cancel(); } catch (e) {}
-            try { window.speechSynthesis.speak(u); } catch (e) {}
+            try { window.speechSynthesis.cancel(); } catch (e) { }
+            try { window.speechSynthesis.speak(u); } catch (e) { }
             tryStartRecognition();
         }
     };
@@ -506,7 +509,7 @@ const LiveWorkout = () => {
             console.log('[LiveWorkout] Opponent progress:', e.detail);
             const { reps } = e.detail;
             setOpponentReps(reps);
-            
+
             if (reps >= 20 && !duelResult) {
                 setDuelResult('lost');
                 pauseWorkout();
@@ -515,7 +518,7 @@ const LiveWorkout = () => {
         };
 
         window.addEventListener('duel-progress', handleDuelProgress);
-        
+
         // Listen for explicit duel-finished message from opponent
         const handleDuelFinished = (e) => {
             const detail = e.detail || {};
@@ -538,11 +541,11 @@ const LiveWorkout = () => {
 
     const handleLandmarks = async (landmarks) => {
         if (!landmarks || landmarks.length === 0 || duelResult) return;
-        
+
         if (phase === 'workout' && isActive) {
             try {
                 const result = updateWorkoutStats(landmarks);
-                
+
                 if (result) {
                     setLastScoreData(result.score || null);
                     setLastRepData(result.reps || null);
@@ -573,39 +576,39 @@ const LiveWorkout = () => {
                             lastRiskSignatureRef.current = signature;
                             lastRiskAlertTimeRef.current = now;
                             lastLLMInstantTime.current = now;
-                        try {
-                            const ctx = {
-                                reps: Number(result?.reps?.repCount || sessionStats.reps) || 0,
-                                avg_score: Number(result?.score?.total || sessionStats.avgScore) || 0,
-                                time: Number(sessionStats.time) || 0,
-                                exercise: String(currentExercise || 'unknown'),
-                                joint_scores: result?.score?.jointScores || null,
-                                risks: result?.score?.risks || null,
-                            };
-                            const res = await fetch(`${API_URL}/voice/process`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Authorization': `Bearer ${token}`,
-                                },
-                                body: JSON.stringify({
-                                    command: "Give an immediate one-sentence corrective cue for my current form.",
-                                    persona: persona || 'supportive',
-                                    session_context: ctx
-                                }),
-                            });
-                            if (res.ok) {
-                                const data = await res.json();
-                                if (data?.response) {
-                                    setAdvice(data.response);
-                                    speakAdvice(data.response);
+                            try {
+                                const ctx = {
+                                    reps: Number(result?.reps?.repCount || sessionStats.reps) || 0,
+                                    avg_score: Number(result?.score?.total || sessionStats.avgScore) || 0,
+                                    time: Number(sessionStats.time) || 0,
+                                    exercise: String(currentExercise || 'unknown'),
+                                    joint_scores: result?.score?.jointScores || null,
+                                    risks: result?.score?.risks || null,
+                                };
+                                const res = await fetch(`${API_URL}/voice/process`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${token}`,
+                                    },
+                                    body: JSON.stringify({
+                                        command: "Give an immediate one-sentence corrective cue for my current form.",
+                                        persona: persona || 'supportive',
+                                        session_context: ctx
+                                    }),
+                                });
+                                if (res.ok) {
+                                    const data = await res.json();
+                                    if (data?.response) {
+                                        setAdvice(data.response);
+                                        speakAdvice(data.response);
+                                    }
+                                } else {
+                                    // no-op
                                 }
-                            } else {
+                            } catch (e) {
                                 // no-op
                             }
-                        } catch (e) {
-                            // no-op
-                        }
                         }
                     }
 
@@ -624,7 +627,7 @@ const LiveWorkout = () => {
 
     const getProactiveAdvice = async (reps) => {
         if (!token || isProactiveLoading) return;
-        
+
         setIsProactiveLoading(true);
         try {
             const context = {
@@ -680,7 +683,7 @@ const LiveWorkout = () => {
             {/* Header Overlay */}
             <div className="relative z-10 p-6 bg-gradient-to-b from-white/90 dark:from-black/80 to-transparent transition-colors duration-300">
                 <div className="flex items-center justify-between">
-                    <button 
+                    <button
                         onClick={() => navigate(-1)}
                         className="w-11 h-11 rounded-full bg-gray-100 dark:bg-white/10 backdrop-blur-md flex items-center justify-center text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-white/20 transition-colors"
                     >
@@ -709,13 +712,13 @@ const LiveWorkout = () => {
                     </div>
 
                     <div className="flex gap-3">
-                        <button 
+                        <button
                             onClick={() => setIsVoiceModalVisible(true)}
                             className="w-11 h-11 rounded-full bg-gray-100 dark:bg-white/10 backdrop-blur-md flex items-center justify-center text-primary hover:bg-gray-200 dark:hover:bg-white/20 transition-colors"
                         >
                             <Activity size={24} />
                         </button>
-                        <button 
+                        <button
                             onClick={toggleMute}
                             className="w-11 h-11 rounded-full bg-gray-100 dark:bg-white/10 backdrop-blur-md flex items-center justify-center transition-colors hover:bg-gray-200 dark:hover:bg-white/20"
                         >
@@ -732,7 +735,7 @@ const LiveWorkout = () => {
             {/* Audio Prompt for Web */}
             {!isAudioEnabled && (
                 <div className="relative z-20 flex justify-center mt-4 px-6">
-                    <button 
+                    <button
                         onClick={handleEnableVoice}
                         className="bg-primary text-black px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg animate-bounce"
                     >
@@ -764,13 +767,13 @@ const LiveWorkout = () => {
                     </div>
                     <div>
                         <p className="text-[10px] font-bold text-gray-500 dark:text-white/50 uppercase tracking-tighter">
-                            {currentExercise?.type === 'yoga' || ['plank', 'tree'].includes(typeof currentExercise === 'string' ? currentExercise.toLowerCase() : currentExercise?.name?.toLowerCase()) 
-                                ? 'Hold Time' 
+                            {currentExercise?.type === 'yoga' || ['plank', 'tree'].includes(typeof currentExercise === 'string' ? currentExercise.toLowerCase() : currentExercise?.name?.toLowerCase())
+                                ? 'Hold Time'
                                 : currentExercise?.type === 'meditation' ? 'Duration' : 'Time'}
                         </p>
                         <p className="text-lg font-black text-gray-900 dark:text-white">
-                            {currentExercise?.type === 'yoga' || ['plank', 'tree'].includes(typeof currentExercise === 'string' ? currentExercise.toLowerCase() : currentExercise?.name?.toLowerCase()) 
-                                ? `${sessionStats.reps}s` 
+                            {currentExercise?.type === 'yoga' || ['plank', 'tree'].includes(typeof currentExercise === 'string' ? currentExercise.toLowerCase() : currentExercise?.name?.toLowerCase())
+                                ? `${sessionStats.reps}s`
                                 : formatTime(sessionStats.time)}
                         </p>
                     </div>
@@ -790,8 +793,8 @@ const LiveWorkout = () => {
             {/* Rep Count Overlay */}
             <div className="flex-1 flex flex-col items-center justify-center relative z-10 pointer-events-none">
                 <p className="text-2xl font-black text-gray-300 dark:text-white/60 uppercase tracking-[0.2em] mb-2 drop-shadow-lg transition-colors duration-300">
-                    {currentExercise?.type === 'yoga' || ['plank', 'tree'].includes(typeof currentExercise === 'string' ? currentExercise.toLowerCase() : currentExercise?.name?.toLowerCase()) 
-                        ? 'Holding' 
+                    {currentExercise?.type === 'yoga' || ['plank', 'tree'].includes(typeof currentExercise === 'string' ? currentExercise.toLowerCase() : currentExercise?.name?.toLowerCase())
+                        ? 'Holding'
                         : currentExercise?.type === 'meditation' ? 'Breaths' : 'Reps'}
                 </p>
                 <h2 className="text-[160px] font-black text-gray-100 dark:text-white leading-none drop-shadow-2xl animate-in zoom-in duration-300 transition-colors duration-300">
@@ -835,14 +838,14 @@ const LiveWorkout = () => {
 
                 {/* Control Buttons */}
                 <div className="flex items-center justify-between gap-4">
-                    <button 
+                    <button
                         onClick={phase === 'rest' ? resumeWorkout : pauseWorkout}
                         className="w-14 h-14 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-white/20 transition-all active:scale-90"
                     >
                         {phase === 'rest' ? <Play size={24} className="fill-gray-900 dark:fill-white" /> : <Pause size={24} className="fill-gray-900 dark:fill-white" />}
                     </button>
 
-                    <button 
+                    <button
                         onClick={handleComplete}
                         className="flex-1 h-14 bg-primary rounded-2xl flex items-center justify-center gap-2 text-black font-black uppercase tracking-widest hover:brightness-110 transition-all active:scale-[0.98]"
                     >
@@ -850,7 +853,7 @@ const LiveWorkout = () => {
                         <ChevronRight size={20} />
                     </button>
 
-                    <button 
+                    <button
                         onClick={resetWorkout}
                         className="w-14 h-14 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-white/20 transition-all active:scale-90"
                     >
@@ -865,7 +868,7 @@ const LiveWorkout = () => {
                     <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-3xl p-8 max-w-sm w-full text-center relative overflow-hidden shadow-2xl transition-colors duration-300">
                         {/* Background Glow */}
                         <div className={`absolute inset-0 opacity-20 ${duelResult === 'won' ? 'bg-green-500' : 'bg-red-500'} blur-3xl`} />
-                        
+
                         <div className="relative z-10">
                             {duelResult === 'won' ? (
                                 <div className="w-24 h-24 rounded-full bg-green-100 dark:bg-green-500/20 flex items-center justify-center mx-auto mb-6 animate-bounce">
@@ -881,18 +884,17 @@ const LiveWorkout = () => {
                                 {duelResult === 'won' ? 'Victory!' : 'Defeat'}
                             </h2>
                             <p className="text-gray-500 dark:text-white/60 mb-8 font-medium text-lg">
-                                {duelResult === 'won' 
-                                    ? `You crushed ${opponent?.username || 'your opponent'}!` 
+                                {duelResult === 'won'
+                                    ? `You crushed ${opponent?.username || 'your opponent'}!`
                                     : `${opponent?.username || 'Opponent'} was faster this time.`}
                             </p>
 
-                            <button 
+                            <button
                                 onClick={handleComplete}
-                                className={`w-full py-4 rounded-xl font-black uppercase tracking-widest text-sm transition-transform active:scale-95 shadow-lg ${
-                                    duelResult === 'won' 
-                                        ? 'bg-green-500 text-black hover:bg-green-400' 
+                                className={`w-full py-4 rounded-xl font-black uppercase tracking-widest text-sm transition-transform active:scale-95 shadow-lg ${duelResult === 'won'
+                                        ? 'bg-green-500 text-black hover:bg-green-400'
                                         : 'bg-red-500 text-white hover:bg-red-600'
-                                }`}
+                                    }`}
                             >
                                 Continue to Summary
                             </button>

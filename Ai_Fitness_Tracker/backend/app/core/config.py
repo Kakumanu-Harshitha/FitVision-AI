@@ -14,18 +14,18 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str
     GMAIL_SENDER_EMAIL: str
     GMAIL_APP_PASSWORD: str
-    DATABASE_PASSWORD: str
     
     # Safe Defaults
     ALGORITHM: str = "HS256"
     
     # Database Settings
-    DATABASE_URL: Optional[str] = None
+    DATABASE_URL: str
     USE_POSTGRES: bool = True
-    DATABASE_HOSTNAME: str = "localhost"
-    DATABASE_PORT: int = 5432
-    DATABASE_NAME: str = "fitness_tracker"
-    DATABASE_USERNAME: str = "postgres"
+    DATABASE_HOSTNAME: Optional[str] = None
+    DATABASE_PORT: Optional[int] = None
+    DATABASE_NAME: Optional[str] = None
+    DATABASE_USERNAME: Optional[str] = None
+    DATABASE_PASSWORD: Optional[str] = None
     
     # Cache Settings
     REDIS_HOST: str = "localhost"
@@ -47,25 +47,16 @@ class Settings(BaseSettings):
     APPLE_REDIRECT_URI: Optional[str] = None
 
     def get_database_url(self, is_async: bool = False) -> str:
-        if self.DATABASE_URL:
-            url = self.DATABASE_URL
-            if is_async:
-                if url.startswith("postgresql://"):
-                    return url.replace("postgresql://", "postgresql+asyncpg://")
-                if url.startswith("sqlite:///"):
-                    return url.replace("sqlite:///", "sqlite+aiosqlite:///")
-            return url
-        
-        driver = "postgresql+asyncpg" if is_async else "postgresql"
-        if not (self.DATABASE_NAME and self.DATABASE_USERNAME and self.DATABASE_PASSWORD and self.DATABASE_HOSTNAME):
-            raise ValueError(
-                "PostgreSQL credentials are missing. Set DATABASE_HOSTNAME, DATABASE_PORT, "
-                "DATABASE_NAME, DATABASE_USERNAME, and DATABASE_PASSWORD in your .env file."
-            )
-        return (
-            f"{driver}://{self.DATABASE_USERNAME}:{self.DATABASE_PASSWORD}"
-            f"@{self.DATABASE_HOSTNAME}:{self.DATABASE_PORT}/{self.DATABASE_NAME}"
-        )
+        if not self.DATABASE_URL:
+             raise ValueError("DATABASE_URL must be set in the environment.")
+             
+        url = self.DATABASE_URL
+        if is_async:
+            if url.startswith("postgresql://"):
+                return url.replace("postgresql://", "postgresql+asyncpg://")
+            if url.startswith("sqlite:///"):
+                return url.replace("sqlite:///", "sqlite+aiosqlite:///")
+        return url
 
     model_config = SettingsConfigDict(
         env_file=os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.env")),

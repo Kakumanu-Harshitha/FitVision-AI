@@ -444,8 +444,12 @@ const LiveWorkout = () => {
             console.error('[LiveWorkout] Failed to save workout error:', error);
         }
 
-        // Calculate XP based on performance
-        let xpGained = Math.floor(finalStats.reps * 0.5 + (finalStats.time / 60) * 2);
+        // Calculate XP: only award if reps > 0
+        // Formula: reps × 2 + (duration_minutes × 1) — time alone earns nothing
+        const repsDone = Number(finalStats.reps) || 0;
+        let xpGained = repsDone > 0
+            ? Math.floor(repsDone * 2 + (finalStats.time / 60) * 1)
+            : 0;
         let currentXP = 0;
         let level = 1;
 
@@ -892,8 +896,8 @@ const LiveWorkout = () => {
                             <button
                                 onClick={handleComplete}
                                 className={`w-full py-4 rounded-xl font-black uppercase tracking-widest text-sm transition-transform active:scale-95 shadow-lg ${duelResult === 'won'
-                                        ? 'bg-green-500 text-black hover:bg-green-400'
-                                        : 'bg-red-500 text-white hover:bg-red-600'
+                                    ? 'bg-green-500 text-black hover:bg-green-400'
+                                    : 'bg-red-500 text-white hover:bg-red-600'
                                     }`}
                             >
                                 Continue to Summary

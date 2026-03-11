@@ -16,7 +16,7 @@ const WorkoutSummary = () => {
         duration = 0,
         calories = 0,
         avgScore = 0,
-        xpGained = 15,
+        xpGained = 0,
         currentXP = 450,
         nextLevelXP = 500,
         level = 5,
@@ -63,7 +63,7 @@ const WorkoutSummary = () => {
                     </div>
                     <div className="space-y-3">
                         <div className="h-3 bg-gray-200 dark:bg-zinc-900 rounded-full overflow-hidden border border-gray-300 dark:border-white/5">
-                            <div 
+                            <div
                                 className="h-full bg-primary transition-all duration-1000 ease-out shadow-[0_0_15px_rgba(180,255,57,0.5)]"
                                 style={{ width: `${levelProgress}%` }}
                             />
@@ -128,7 +128,7 @@ const WorkoutSummary = () => {
 
                 {/* Actions */}
                 <div className="flex gap-4">
-                    <button 
+                    <button
                         onClick={handleShare}
                         className="flex-1 h-14 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-2xl flex items-center justify-center gap-3 text-gray-900 dark:text-zinc-400 font-bold uppercase tracking-widest hover:bg-gray-50 dark:hover:text-white dark:hover:bg-zinc-800 transition-all active:scale-95 shadow-sm"
                     >

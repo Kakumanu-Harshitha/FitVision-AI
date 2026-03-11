@@ -8,7 +8,12 @@ def calculate_points(workout_data: WorkoutCreate, posture_score: float) -> int:
     """
     Calculate points based on workout performance.
     Formula: (Reps * 10) + (Duration_Seconds * 0.5) * (Avg_Posture_Score / 100)
+    No reps = no points. You must perform at least 1 rep to earn points.
     """
+    # Guard: no reps = no points (prevents XP from just starting a session)
+    if workout_data.reps <= 0:
+        return 0
+
     reps_points = workout_data.reps * 10
     duration_points = workout_data.duration * 0.5
     posture_multiplier = posture_score / 100.0

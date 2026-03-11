@@ -8,7 +8,7 @@ const getApiBaseUrl = () => {
   if (process.env.REACT_APP_API_URL) {
     return process.env.REACT_APP_API_URL;
   }
-  
+
   // If running in browser environment
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
@@ -16,12 +16,12 @@ const getApiBaseUrl = () => {
     if (hostname === 'localhost') {
       return 'http://127.0.0.1:8000';
     }
-    // Otherwise use the IP address (for mobile testing)
-    return `http://${hostname}:8000`;
+    // Otherwise use the Render URL for remote testing from mobile etc.
+    return 'https://fitvision-ai.onrender.com';
   }
-  
-  // Fallback for non-browser environments
-  return 'http://127.0.0.1:8000';
+
+  // Fallback for non-browser environments or when hostname can't be trusted
+  return 'https://fitvision-ai.onrender.com';
 };
 
 export const API_BASE_URL = getApiBaseUrl();
@@ -56,13 +56,13 @@ export const forgotPassword = async (email) => {
       },
       body: JSON.stringify({ email }),
     });
-    
+
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data.detail || 'Failed to send reset email');
     }
-    
+
     return data;
   } catch (error) {
     throw error;
@@ -78,13 +78,13 @@ export const resetPassword = async (token, newPassword) => {
       },
       body: JSON.stringify({ token, new_password: newPassword }),
     });
-    
+
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data.detail || 'Failed to reset password');
     }
-    
+
     return data;
   } catch (error) {
     throw error;
@@ -116,13 +116,13 @@ export const setupTOTP = async (token) => {
         'Authorization': `Bearer ${token}`
       },
     });
-    
+
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data.detail || 'Failed to setup TOTP');
     }
-    
+
     return data;
   } catch (error) {
     throw error;
@@ -139,13 +139,13 @@ export const verifyTOTP = async (token, otp) => {
       },
       body: JSON.stringify({ otp }),
     });
-    
+
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data.detail || 'Failed to verify TOTP');
     }
-    
+
     return data;
   } catch (error) {
     throw error;
@@ -160,18 +160,18 @@ export const changePassword = async (token, newPassword, totpCode = null) => {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         new_password: newPassword,
         totp_code: totpCode
       }),
     });
-    
+
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data.detail || 'Failed to change password');
     }
-    
+
     return data;
   } catch (error) {
     throw error;

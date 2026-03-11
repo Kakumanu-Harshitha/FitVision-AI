@@ -41,6 +41,8 @@ app.add_middleware(
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://0.0.0.0:3000",
+        "https://fitvision-ai.onrender.com",  # Render deployed frontend
+        settings.WEB_BASE_URL,               # Configurable via .env
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -89,14 +91,17 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         content={"detail": ", ".join(errors)},
     )
 
-# Create database tables (Sync for startup, better to use Alembic in prod)
-# Only run this if not using migrations
-Base.metadata.create_all(bind=sync_engine)
+
 
 @app.on_event("startup")
 async def startup_event():
+    # Create all tables if they don't exist (safe to run multiple times)
+    try:
+        Base.metadata.create_all(bind=sync_engine)
+        logger.info("Database tables created/verified successfully.")
+    except Exception as e:
+        logger.error(f"Failed to create database tables: {e}")
     await redis_service.connect()
-    # If using postgres, we might want to ensure connection here
 
 @app.on_event("shutdown")
 async def shutdown_event():
